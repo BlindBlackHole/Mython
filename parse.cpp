@@ -380,6 +380,21 @@ private:
     return make_unique<Ast::IfElse>(std::move(condition), std::move(if_body), std::move(else_body));
   }
 
+  // Condition -> while LogicalExpr: Suite
+  unique_ptr<Ast::Statement> ParseWhile() {
+    lexer.Expect<TokenType::While>();
+    lexer.NextToken();
+
+    auto condition = ParseTest();
+
+    lexer.Expect<TokenType::Char>(':');
+    lexer.NextToken();
+
+    auto body = ParseSuite();
+
+    return make_unique<Ast::While>(std::move(condition), std::move(body));
+  }
+
   // LogicalExpr -> AndTest [OR AndTest]
   // AndTest -> NotTest [AND NotTest]
   // NotTest -> [NOT] NotTest
@@ -447,8 +462,9 @@ private:
     const auto& tok = lexer.CurrentToken();
 
     if (tok.Is<TokenType::Def>()) {
-      //lexer.NextToken();
       return ParseFunctionDefenition();
+    } else if (tok.Is<TokenType::While>()) {
+      return ParseWhile();
     } else if (tok.Is<TokenType::Class>()) {
       lexer.NextToken();
       return ParseClassDefinition();

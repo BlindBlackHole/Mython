@@ -9,7 +9,7 @@
 #include <unordered_map>
 
 namespace Ast {
-  class Statement;
+  struct Statement;
 }
 
 class TestRunner;

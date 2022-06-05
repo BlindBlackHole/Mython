@@ -47,8 +47,23 @@ public:
 	}
 };
 
+#define TEST_FILE
+
 int main(int argc, char* argv[]) {
 	auto systemPause = Deffer([]{ system("pause"); });
+
+#ifdef TEST_FILE
+    {
+        auto filePath = "test.py";
+        if (std::ifstream file(filePath); file.is_open()) {
+            RunMythonProgram(file, cout);
+        }
+        else {
+            std::cout << "Could not find " << filePath << std::endl;
+        }
+        return 0;
+    }
+#endif
 
 	if (argc == 1) {
 		RunMythonProgram(cin, cout);

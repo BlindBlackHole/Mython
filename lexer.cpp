@@ -144,6 +144,7 @@ Token Lexer::NextTokenImpl() {
     {"return", Return{}},
     {"if", If{}},
     {"else", Else{}},
+    {"while", While{}},
     {"def", Def{}},
     {"print", Print{}},
     {"and", And{}},

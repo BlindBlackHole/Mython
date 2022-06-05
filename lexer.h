@@ -32,6 +32,7 @@ namespace TokenType {
   struct Return{};
   struct If {};
   struct Else {};
+  struct While{};
   struct Def {};
   struct Newline {};
   struct Print {};
@@ -59,6 +60,7 @@ using TokenBase = std::variant<
   TokenType::Return,
   TokenType::If,
   TokenType::Else,
+  TokenType::While,
   TokenType::Def,
   TokenType::Newline,
   TokenType::Print,
@@ -78,14 +80,6 @@ using TokenBase = std::variant<
 >;
 
 
-//По сравнению с условием задачи мы добавили в тип Token несколько
-//удобных методов, которые делают код короче. Например,
-//
-//token.Is<TokenType::Id>()
-//
-//гораздо короче, чем
-//
-//std::holds_alternative<TokenType::Id>(token).
 struct Token : TokenBase {
   using TokenBase::TokenBase;
 

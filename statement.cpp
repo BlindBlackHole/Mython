@@ -50,20 +50,22 @@ Print::Print(unique_ptr<Statement> argument) {
 	args.push_back(std::move(argument));
 }
 
-Print::Print(vector<unique_ptr<Statement>> args) : args(move(args)) {
+Print::Print(vector<unique_ptr<Statement>> args)
+    : args(std::make_move_iterator(args.begin()),
+           std::make_move_iterator(args.end())) {
 }
 
 ObjectHolder Print::Execute(Closure& closure) {
 	for (size_t i = 0; i < args.size(); ++i) {
 		//Convert every arg in string
-		Stringify to_string(move(args[i]));
+        Stringify to_string(args[i]);
 		//Print converted string
 		ObjectHolder temp;
 		try {
 			temp = to_string.Execute(closure); 
 			temp->Print(*output);
 		}
-		catch (ObjectHolder obj) {
+        catch (ObjectHolder& obj) {
 			obj->Print(*output);
 		}
 		if (i != args.size() - 1) {
@@ -127,9 +129,9 @@ ObjectHolder Stringify::Execute(Closure& closure) {
 	std::ostringstream str;
 	ObjectHolder obj;
 	obj = argument->Execute(closure);
-	if (!obj) {
-		return ObjectHolder::Own(Runtime::String("None"));
-	}
+    if (!obj) {
+        return ObjectHolder::Own(Runtime::String("None"));
+    }
 	obj->Print(str);
 	return ObjectHolder::Own(Runtime::String(str.str()));
 }
@@ -222,7 +224,7 @@ ObjectHolder Compound::Execute(Closure& closure) {
 		try {
 			statement->Execute(closure);
 		}
-		catch (ObjectHolder obj) {
+        catch (ObjectHolder& obj) {
 			throw obj;
 		}
 	}
@@ -266,37 +268,58 @@ IfElse::IfElse(
 {
 }
 
-ObjectHolder IfElse::Execute(Runtime::Closure& closure) {
-	bool key = false;
-	//if condition is bool
-	auto cond_bool_statement = condition->Execute(closure);
-	auto cond_bool = cond_bool_statement.TryAs<Runtime::Bool>();
-	if (cond_bool) {
-		key = cond_bool->GetValue();
-	}
-	//if conditoin is number
-	auto cond_num = condition->Execute(closure).TryAs<Runtime::Number>();
-	if (cond_num) {
-		key = (cond_num->GetValue() != 0);
-	}
-	//if condition is string
-	auto cond_str = condition->Execute(closure).TryAs<Runtime::String>();
-	if (cond_str) {
-		key = (!cond_str->GetValue().empty());
-	}
-	//if condition is Object
-	auto cond_obj = condition->Execute(closure).TryAs<Runtime::ClassInstance>();
-	if (cond_obj) {
-		key = true;
-	}
+namespace {
+    bool executeCondition(Statement& condition, Runtime::Closure& closure) {
+        bool key = false;
+        auto cond_bool_statement = condition.Execute(closure);
 
-	if (key) {
+        //if condition is bool
+        if (auto cond_bool = cond_bool_statement.TryAs<Runtime::Bool>()) {
+            key = cond_bool->GetValue();
+        }
+        //if conditoin is number
+        if (auto cond_num = cond_bool_statement.TryAs<Runtime::Number>()) {
+            key = (cond_num->GetValue() != 0);
+        }
+        //if condition is string
+        if (auto cond_str = cond_bool_statement.TryAs<Runtime::String>()) {
+            key = (!cond_str->GetValue().empty());
+        }
+        //if condition is Object
+        if (auto cond_obj = cond_bool_statement.TryAs<Runtime::ClassInstance>()) {
+            key = true;
+        }
+        return key;
+    }
+}
+
+ObjectHolder IfElse::Execute(Runtime::Closure& closure) {
+    if (executeCondition(*condition, closure)) {
 		return if_body->Execute(closure);
 	}
 	else if (else_body) { //Else_body can be empty
 		return else_body->Execute(closure);
 	}
 	return ObjectHolder::None();
+}
+
+While::While(
+    std::unique_ptr<Statement> condition,
+    std::unique_ptr<Statement> body,
+    std::unique_ptr<Statement> else_body
+)	: condition(move(condition)),
+    body(move(body)),
+    else_body(move(else_body)) {}
+
+ObjectHolder While::Execute(Runtime::Closure& closure) {
+    while (true) {
+        if (executeCondition(*condition, closure)) {
+            body->Execute(closure);
+        } else {
+            break;
+        }
+    }
+    return ObjectHolder::None();
 }
 
 template<typename T>

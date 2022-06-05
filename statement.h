@@ -77,7 +77,7 @@ public:
   static void SetOutputStream(std::ostream& output_stream);
 
 private:
-  std::vector<std::unique_ptr<Statement>> args;
+  std::vector<std::shared_ptr<Statement>> args;
   static std::ostream* output;
 };
 
@@ -130,11 +130,12 @@ struct NewInstance : Statement {
 
 class UnaryOperation : public Statement {
 public:
-  UnaryOperation(std::unique_ptr<Statement> argument) : argument(std::move(argument)) {
-  }
+  UnaryOperation(std::shared_ptr<Statement> argument)
+      : argument(std::move(argument))
+  {}
 
 protected:
-  std::unique_ptr<Statement> argument;
+  std::shared_ptr<Statement> argument;
 };
 
 class Stringify : public UnaryOperation {
@@ -250,6 +251,20 @@ public:
 
 private:
   std::unique_ptr<Statement> condition, if_body, else_body;
+};
+
+class While : public Statement {
+public:
+  While(
+    std::unique_ptr<Statement> condition,
+    std::unique_ptr<Statement> body,
+    std::unique_ptr<Statement> else_body = nullptr /// @todo impelement else body
+  );
+
+  ObjectHolder Execute(Runtime::Closure& closure) override;
+
+private:
+  std::unique_ptr<Statement> condition, body, else_body;
 };
 
 class Comparison : public Statement {
