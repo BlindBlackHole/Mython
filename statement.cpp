@@ -5,6 +5,7 @@
 #include <sstream>
 #include <optional>
 #include <variant>
+#include <math.h>
 
 using namespace std;
 
@@ -217,6 +218,33 @@ ObjectHolder Div::Execute(Runtime::Closure& closure) {
 	auto sum = obj_lhs->GetValue() / obj_rhs->GetValue();
 	auto obj_sum = Runtime::ValueObject<int>(sum);
 	return ObjectHolder::Own(move(obj_sum));
+}
+
+ObjectHolder Modulo::Execute(Runtime::Closure& closure) {
+    auto obj_l = lhs->Execute(closure);
+    auto obj_r = rhs->Execute(closure);
+    auto obj_lhs = obj_l.TryAs<Runtime::Number>();
+    auto obj_rhs = obj_r.TryAs<Runtime::Number>();
+    if (obj_lhs == nullptr || obj_rhs == nullptr) {
+        return ObjectHolder::None();
+    }
+    auto result = obj_lhs->GetValue() % obj_rhs->GetValue();
+    auto obj_sum = Runtime::ValueObject<int>(result);
+    return ObjectHolder::Own(move(obj_sum));
+}
+
+ObjectHolder Power::Execute(Runtime::Closure &closure)
+{
+    auto obj_l = lhs->Execute(closure);
+    auto obj_r = rhs->Execute(closure);
+    auto obj_lhs = obj_l.TryAs<Runtime::Number>();
+    auto obj_rhs = obj_r.TryAs<Runtime::Number>();
+    if (obj_lhs == nullptr || obj_rhs == nullptr) {
+        return ObjectHolder::None();
+    }
+    auto power = std::pow(obj_lhs->GetValue(), obj_rhs->GetValue());
+    auto obj_result = Runtime::ValueObject<int>(power);
+    return ObjectHolder::Own(move(obj_result));
 }
 
 ObjectHolder Compound::Execute(Closure& closure) {

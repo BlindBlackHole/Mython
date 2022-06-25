@@ -230,32 +230,44 @@ private:
 
   // Expr -> Adder ['+'/'-' Adder]*
   unique_ptr<Ast::Statement> ParseExpression() {
-    unique_ptr<Ast::Statement> result = ParseAdder();
+    unique_ptr<Ast::Statement> result = ParsePower();
     while (lexer.CurrentToken() == '+' || lexer.CurrentToken() == '-') {
       char op = lexer.CurrentToken().As<TokenType::Char>().value;
       lexer.NextToken();
 
       if (op == '+') {
-        result = make_unique<Ast::Add>(std::move(result), ParseAdder());
+        result = make_unique<Ast::Add>(std::move(result), ParsePower());
       } else {
-        result = make_unique<Ast::Sub>(std::move(result), ParseAdder());
+        result = make_unique<Ast::Sub>(std::move(result), ParsePower());
       }
     }
     return result;
   }
 
-  // Adder -> Mult ['*'/'/' Mult]*
+  // Adder -> Mult ['*'/'/'/'%' Mult]*
   unique_ptr<Ast::Statement> ParseAdder() {
     unique_ptr<Ast::Statement> result = ParseMult();
-    while (lexer.CurrentToken() == '*' || lexer.CurrentToken() == '/') {
+    while (lexer.CurrentToken() == '*' || lexer.CurrentToken() == '/' || lexer.CurrentToken() == '%') {
       char op = lexer.CurrentToken().As<TokenType::Char>().value;
       lexer.NextToken();
 
       if (op == '*') {
         result = make_unique<Ast::Mult>(std::move(result), ParseMult());
-      } else {
+      } else if (op == '/') {
         result = make_unique<Ast::Div>(std::move(result), ParseMult());
+      } else {
+        result = make_unique<Ast::Modulo>(std::move(result), ParseMult());
       }
+    }
+    return result;
+  }
+
+  // Power **
+  unique_ptr<Ast::Statement> ParsePower() {
+    unique_ptr<Ast::Statement> result = ParseAdder();
+    while (lexer.CurrentToken().Is<TokenType::OpPower>()) {
+        lexer.NextToken();
+        result = make_unique<Ast::Power>(std::move(result), ParseAdder());
     }
     return result;
   }
@@ -317,13 +329,13 @@ private:
         if (names.empty()) {
             if (auto it = declared_functions.find(method_name); it != declared_functions.end()) {
                 return make_unique<Ast::FunctionCall>(
-                  std::make_unique<Ast::FunctionDefinition>(it->second),
-                  std::move(method_name),
-                  std::move(args)
-                );
+                            std::make_unique<Ast::FunctionDefinition>(it->second),
+                            std::move(method_name),
+                            std::move(args)
+                            );
             }
-            throw "Function " + method_name + " not defined";
-        } else if (!names.empty()) {
+        }
+        if (!names.empty()) {
           return make_unique<Ast::MethodCall>(
             make_unique<Ast::VariableValue>(std::move(names)),
             std::move(method_name),

@@ -21,7 +21,7 @@ void TestSimpleAssignment() {
 }
 
 void TestKeywords() {
-  istringstream input("class return if else while def print or None and not True False");
+  istringstream input("class return if else while def print or None and not True False **");
   Lexer lexer(input);
 
   ASSERT_EQUAL(lexer.CurrentToken(), Token(TokenType::Class{}));
@@ -37,6 +37,7 @@ void TestKeywords() {
   ASSERT_EQUAL(lexer.NextToken(), Token(TokenType::Not{}));
   ASSERT_EQUAL(lexer.NextToken(), Token(TokenType::True{}));
   ASSERT_EQUAL(lexer.NextToken(), Token(TokenType::False{}));
+  ASSERT_EQUAL(lexer.NextToken(), Token(TokenType::OpPower{}));
 }
 
 void TestNumbers() {

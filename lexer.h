@@ -49,6 +49,7 @@ namespace TokenType {
   struct None {};
   struct True {};
   struct False {};
+  struct OpPower {};
 }
 
 using TokenBase = std::variant<
@@ -76,6 +77,7 @@ using TokenBase = std::variant<
   TokenType::None,
   TokenType::True,
   TokenType::False,
+  TokenType::OpPower,
   TokenType::Eof
 >;
 

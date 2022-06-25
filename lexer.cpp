@@ -62,6 +62,7 @@ std::ostream& operator << (std::ostream& os, const Token& rhs) {
   UNVALUED_OUTPUT(None);
   UNVALUED_OUTPUT(True);
   UNVALUED_OUTPUT(False);
+  UNVALUED_OUTPUT(OpPower);
   UNVALUED_OUTPUT(Eof);
 
 #undef UNVALUED_OUTPUT
@@ -153,6 +154,7 @@ Token Lexer::NextTokenImpl() {
     {"None", None{}},
     {"True", True{}},
     {"False", False{}},
+    {"**", OpPower{}},
   };
 
   if (indent > char_reader.CurrentIndent()) {
@@ -171,6 +173,16 @@ Token Lexer::NextTokenImpl() {
 
   if (isspace(cur_char)) {
     cur_char = char_reader.Next();
+  }
+
+  if (cur_char == '*') {
+      cur_char = char_reader.Get();
+      if (cur_char == '*') {
+          cur_char = char_reader.Next();
+          return OpPower{};
+      } else {
+          return Char{'*'};
+      }
   }
 
   if (cur_char == IndentedReader::Eof) {

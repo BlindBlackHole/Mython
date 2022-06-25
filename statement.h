@@ -180,6 +180,18 @@ public:
   ObjectHolder Execute(Runtime::Closure& closure) override;
 };
 
+class Power : public BinaryOperation {
+public:
+  using BinaryOperation::BinaryOperation;
+  ObjectHolder Execute(Runtime::Closure& closure) override;
+};
+
+class Modulo : public BinaryOperation {
+public:
+  using BinaryOperation::BinaryOperation;
+  ObjectHolder Execute(Runtime::Closure& closure) override;
+};
+
 class Or : public BinaryOperation {
 public:
   using BinaryOperation::BinaryOperation;

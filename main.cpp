@@ -47,9 +47,10 @@ public:
 	}
 };
 
-#define TEST_FILE
+//#define TEST_FILE
 
 int main(int argc, char* argv[]) {
+    TestAll();
 	auto systemPause = Deffer([]{ system("pause"); });
 
 #ifdef TEST_FILE
